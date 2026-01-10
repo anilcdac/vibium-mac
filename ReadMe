@@ -1,0 +1,67 @@
+1] To run script use cmd
+
+node <fileName>
+eg: node basic5.js
+
+2]  MCP 
+
+Ref Link: https://github.com/VibiumDev/vibium/blob/main/docs/tutorials/getting-started-mcp.md
+
+https://github.com/VibiumDev/vibium/blob/main/docs/tutorials/claude-code-mcp-setup.md
+
+==
+
+I tried with prompt, default it suggested for puppeteer, and I allowed it to install puppeteer , it executed below command
+npm install puppeteer , and below 2 script files created with that 
+basic9, basic 11,
+
+
+created basic9.js file
+Executed below prompt in Chat - VS code chat agent- blackbox
+Go to example.com and click the first link
+
+Script generated, 
+Its requested permission to install puppeteer 
+
+node basic9.js
+
+
+We need claude MCP server
+3]  MCP Installation: 
+cmd prompt with project folder as root
+
+a] npm install -g @anthropic-ai/claude-code
+
+
+
+CMD screen:
+anilkumarkalshetti@Anilkumars-MacBook-Pro vibium-mac % npm install -g @anthropic-ai/claude-code
+
+changed 3 packages in 546ms
+
+2 packages are looking for funding
+  run `npm fund` for details
+
+b] claude mcp list
+
+CMD screen:
+anilkumarkalshetti@Anilkumars-MacBook-Pro vibium-mac % claude mcp list
+Checking MCP server health...
+
+vibium: npx -y vibium - ✓ Connected
+
+
+
+later I removed puppeteer , executed below command
+npm remove puppeteer 
+
+
+asked prompt to 
+
+Take a screenshot of https://example.com
+make use of vibium instead of puppeteer
+
+, and below script files created with that 
+basic12
+
+To execute: node basic12.js
