@@ -129,11 +129,101 @@ async function identifyMultipleLoginButtons() {
 				console.log(`    Class: "${btn.class}"`);
 				console.log(`    Type: ${btn.type}`);
 			});
-		}
-		
 		// 4. Search for buttons inside iframes
 		console.log('\n=== SEARCHING IN IFRAMES ===');
 		
+		// First, check the page HTML to see where the second Login button is
+		const pageStructure = vibe.evaluate(`
+			let structure = {
+				iframeElements: [],
+				allLoginButtons: [],
+				iframeExampleSection: null
+			};
+			
+			// Find the "iFrame Example" text location
+			let textNodes = document.body.innerText;
+			let iframeExampleIndex = textNodes.indexOf('iFrame Example');
+			structure.iframeExampleSection = iframeExampleIndex >= 0 ? 'Found' : 'Not found';
+			
+			// Get all iframes
+			let iframes = document.querySelectorAll('iframe');
+			for(let i = 0; i < iframes.length; i++) {
+				let rect = iframes[i].getBoundingClientRect();
+				structure.iframeElements.push({
+					index: i,
+					id: iframes[i].id,
+					src: iframes[i].src,
+					topPos: Math.round(rect.top),
+					height: Math.round(rect.height)
+				});
+			}
+			
+			// Search ALL buttons including those not labeled "Login"
+			let buttons = document.querySelectorAll('button, input[type="button"], input[type="submit"]');
+			for(let i = 0; i < buttons.length; i++) {
+				let text = (buttons[i].value || buttons[i].textContent || '').trim();
+				let rect = buttons[i].getBoundingClientRect();
+				if(text) {
+					structure.allLoginButtons.push({
+						index: i,
+						text: text,
+						topPos: Math.round(rect.top),
+						tag: buttons[i].tagName
+					});
+				}
+			}
+			
+			return structure;
+		`);
+		
+		const pagStruct = deepUnwrap(pageStructure);
+		console.log('✓ iFrame Example section:', pagStruct.iframeExampleSection);
+		console.log('✓ Total iframes on page:', pagStruct.iframeElements.length);
+		console.log('✓ All buttons found:', pagStruct.allLoginButtons.length);
+		
+		if(pagStruct.iframeElements && pagStruct.iframeElements.length > 0) {
+			console.log('\n--- IFRAME POSITIONS ---');
+			pagStruct.iframeElements.forEach((f, idx) => {
+				if(Array.isArray(f)) {
+					// Convert from pairs
+					let iframe = {};
+					for(let pair of f) {
+						if(Array.isArray(pair) && pair.length === 2) {
+							iframe[pair[0]] = pair[1];
+						}
+					}
+					console.log(`  iFrame #${idx}: topPos=${iframe.topPos}px, height=${iframe.height}px, id="${iframe.id}", src="${iframe.src}"`);
+				} else {
+					console.log(`  iFrame #${idx}: topPos=${f.topPos}px, height=${f.height}px, id="${f.id}", src="${f.src}"`);
+				}
+			});
+		}
+		
+		if(pagStruct.allLoginButtons && pagStruct.allLoginButtons.length > 0) {
+			console.log('\n--- ALL BUTTONS POSITIONS ---');
+			let buttons_arr = pagStruct.allLoginButtons;
+			if(Array.isArray(buttons_arr)) {
+				buttons_arr.forEach((btn, idx) => {
+					if(Array.isArray(btn)) {
+						let button = {};
+						for(let pair of btn) {
+							if(Array.isArray(pair) && pair.length === 2) {
+								button[pair[0]] = pair[1];
+							}
+						}
+						if(button.text.toLowerCase().includes('login')) {
+							console.log(`  Button #${idx}: "${button.text}" at topPos=${button.topPos}px`);
+						}
+					} else {
+						if(btn.text && btn.text.toLowerCase().includes('login')) {
+							console.log(`  Button #${idx}: "${btn.text}" at topPos=${btn.topPos}px`);
+						}
+					}
+				});
+			}
+		}
+		
+		// Now search for login buttons in iframes
 		const iframeButtonsData = vibe.evaluate(`
 			let iframes = document.querySelectorAll('iframe');
 			let iframeButtons = [];
@@ -188,7 +278,7 @@ async function identifyMultipleLoginButtons() {
 			});
 		}
 		
-		console.log('✓ Login buttons inside iframes:', iframeButtData.length);
+		console.log('\n✓ Login buttons inside iframes:', iframeButtData.length);
 		if(iframeButtData.length > 0) {
 			iframeButtData.forEach((btn, idx) => {
 				console.log(`\n  iFrame Button #${idx + 1} (in iframe #${btn.iframeIndex}):`);
